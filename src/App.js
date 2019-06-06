@@ -24,12 +24,11 @@ class App extends Component {
 
   componentDidMount() {
     const socket = openSocket(API_ADDRESS);
-
-    this.setState({ ...this.state, socket });
+    this.setState({ socket });
 
     // We subscribe to each change someone has made on the list
     socket.on('updateList', list => {
-      this.setState({ ...this.state, list });
+      this.setState({ list });
     });
   }
 
@@ -40,7 +39,7 @@ class App extends Component {
 
     if (title) {
       socket.emit('addItem', title);
-      this.setState({ ...this.state, newItemTitle: '' });
+      this.setState({ newItemTitle: '' });
     }
   }
 
@@ -51,11 +50,10 @@ class App extends Component {
   }
 
   handleListChange(list) {
-    const { state } = this;
     const { socket } = this.state;
 
     socket.emit('updateList', list);
-    this.setState({ ...state, list });
+    this.setState({ list });
   }
 
   render() {
