@@ -3,33 +3,9 @@ import SortableTree from 'react-sortable-tree';
 import FileExplorerTheme from 'react-sortable-tree-theme-minimal';
 import 'react-sortable-tree/style.css';
 import './App.css';
+import openSocket from 'socket.io-client';
 
-/**
- * This should be moved somewhere else
- * in a service or a middlware
- */
-function* generator(id) {
-  while (true) { yield id++; }
-}
-const idGenerator = generator(0);
-
-const LIST = [
-  { id: idGenerator.next().value, title: 'Item1' },
-  {
-    id: idGenerator.next().value, title: 'Item2', children: [
-      { id: idGenerator.next().value, title: 'Children1' },
-      {
-        id: idGenerator.next().value, title: 'Children2', children: [
-          { id: idGenerator.next().value, title: 'SubChildren1' },
-          { id: idGenerator.next().value, title: 'SubChildren2' },
-          { id: idGenerator.next().value, title: 'SubChildren3' }
-        ]
-      },
-      { id: idGenerator.next().value, title: 'Children3' },
-    ]
-  },
-  { id: idGenerator.next().value, title: 'Item3' },
-];
+const API_ADDRESS = 'http://localhost:3001';
 
 /**
  * Main code
@@ -39,52 +15,69 @@ class App extends Component {
     super(props)
     this.state = {
       newItemTitle: '',
-      list: LIST,
+      list: [],
     };
     this.addItem = this.addItem.bind(this);
-    this.handleChange = this.handleChange.bind(this);
-    this.exportAsOpml = this.exportAsOpml.bind(this);
+    this.handleInputChange = this.handleInputChange.bind(this);
+    this.handleListChange = this.handleListChange.bind(this);
+  }
+
+  componentDidMount() {
+    const socket = openSocket(API_ADDRESS);
+
+    this.setState({ ...this.state, socket });
+
+    // We subscribe to each change someone has made on the list
+    socket.on('updateList', list => {
+      this.setState({ ...this.state, list });
+    });
   }
 
   addItem(evt) {
     evt.preventDefault();
     const title = this.state.newItemTitle;
+    const { socket } = this.state;
 
     if (title) {
-      const list = this.state.list;
-      const id = idGenerator.next().value;
-
-      this.setState({
-        newItemTitle: '',
-        list: [...list, { id, title }],
-      });
+      socket.emit('addItem', title);
     }
   }
 
-  handleChange(evt) {
+  handleInputChange(evt) {
     const newItemTitle = evt.target.value;
-    console.log(this.state);
 
     this.setState({ newItemTitle });
   }
 
+  handleListChange(list) {
+    const { state } = this;
+    const { socket } = this.state;
+
+    socket.emit('updateList', list);
+    this.setState({ ...state, list });
+  }
+
   render() {
     const { list, newItemTitle } = this.state;
-    const { addItem, handleChange, exportAsOpml } = this;
+    const { addItem, handleInputChange, handleListChange } = this;
 
     return (
       <div className="App">
         <header className="App-header">Listy</header>
         <section className="App-list">
-          <button onClick={exportAsOpml}>Export as OPML</button>
           <form onSubmit={addItem} className="App-form">
-            <input type="text" placeholder="Add something" value={newItemTitle} onChange={handleChange} />
+            <input
+              type="text"
+              placeholder="Add something"
+              value={newItemTitle}
+              onChange={handleInputChange}
+            />
             <button type="submit">Ajouter</button>
           </form>
           <div style={{ height: 600 }}>
             <SortableTree
               treeData={list}
-              onChange={list => this.setState({ list })}
+              onChange={list => handleListChange(list)}
               theme={FileExplorerTheme}
               rowHeight={30}
             />
