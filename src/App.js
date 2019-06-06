@@ -40,6 +40,7 @@ class App extends Component {
 
     if (title) {
       socket.emit('addItem', title);
+      this.setState({ ...this.state, newItemTitle: '' });
     }
   }
 
