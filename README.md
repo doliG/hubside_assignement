@@ -1,5 +1,7 @@
 # HUBSIDE ASSIGNMENT
 
+## Instructions
+
 Bonus exercise (Not mandatory)
 
 You are expected to build a JavaScript application that lets users write hierarchical lists. 
@@ -18,7 +20,11 @@ Ultimately, the application should:
 
 And do much more; the product owner is bustling with ideas. 
 
-=> WIP. I’ll send you my MVP by a GitHub link when it’ll be over.
+## What I've done here
+
+- The initial shipment
+- Allow collaborative edition
+
 
 ---
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
